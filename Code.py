@@ -101,7 +101,7 @@ for am_idx in range(len(am)):
                 if(i==j):
                     a[i][j] = 1
                 else:
-                    a[i][j] = 2*am*np.random.rand()
+                    a[i][j] = 2*am[am_idx]*np.random.rand()
     
     
     
@@ -136,18 +136,19 @@ D = 0.000001
 am = np.linspace(0.01,1,25)
 y0 = [1/S]*S
 maxtime = 1000
-mean_survival = []
+n_iter=100
+mean_communities = []
 for am_idx in range(len(am)):
     
-    survival = []
-    for iter in range(100):
+    fluctuating_communities = 0
+    for iter in range(n_iter):
         a = np.zeros((S,S))
         for i in range(S):
             for j in range(S):
                 if(i==j):
                     a[i][j] = 1
                 else:
-                    a[i][j] = 2*am*np.random.rand()
+                    a[i][j] = 2*am[am_idx]*np.random.rand()
     
         
     
@@ -157,16 +158,16 @@ for am_idx in range(len(am)):
         ss = np.zeros(S)
         ss = sol.T
     
-        survival_species = 0
+        fluctuating_species = []
         for n in ss:
+
+            fluctuating_species.append(np.std(n[-500:-1])/np.mean(n[-500:-1]))
             
-            amount = np.std(n[-500:-1])/np.mean(n[-500:-1])
-            if amount>0.001:
-                survival_species += 1
-        survival_species = survival_species/S
-        survival.append(survival_species)
-    mean_survival.append(np.mean(survival))
-plt.plot(am,mean_survival)
+        amount = np.mean(fluctuating_species)
+        if amount>0.001:
+            fluctuating_communities += 1
+    mean_communities.append(fluctuating_communities/n_iter)
+plt.plot(am,mean_communities)
 plt.ylabel('Fluctuation fraction')
 plt.xlabel('Interaction strength')
 plt.title('Fluctuation. S='+str(S))
@@ -238,17 +239,17 @@ S = np.arange(0,110,20)
 S[0] = 2
 am = np.arange(0,1.1,0.2)
 am[0] = 0.01
-
+n_iter = 100
 maxtime = 200
 
-solSurvival = [[0]*len(S) for i in range(len(am))]
+solFluctuation = [[0]*len(S) for i in range(len(am))]
 
 for i in range(len(S)):
   for j in range(len(am)):
       
     y0 = [1/S[i]]*S[i]
-    survival = []
-    for iter in range(10):
+    fluctuating_communities = 0
+    for iter in range(n_iter):
         a = np.zeros((S[i],S[i]))
         for ii in range(S[i]):
             for jj in range(S[i]):
@@ -266,20 +267,19 @@ for i in range(len(S)):
         ss = np.zeros(S[i])
         ss = sol.T
     
-        survival_species = 0
+        fluctuating_species = []
         for n in ss:
+
+            fluctuating_species.append(np.std(n[-500:-1])/np.mean(n[-500:-1]))
             
-            amount = np.std(n[-50:-1])/np.mean(n[-50:-1])
-            if amount>0.001:
-                survival_species += 1
-        survival_species = survival_species/S[i]
-        survival.append(survival_species)
-    solSurvival[j][i] = np.mean(survival)
-    print(i)
+        amount = np.mean(fluctuating_species)
+        if amount>0.001:
+            fluctuating_communities += 1
+    solFluctuation[j][i] = fluctuating_communities/n_iter
       
     
     
-plt.contourf(S,am,solSurvival,50,vmin=0,vmax=1,cmap=plt.cm.viridis)
+plt.contourf(S,am,solFluctuation,50,vmin=0,vmax=1,cmap=plt.cm.viridis)
 plt.colorbar()
 plt.ylabel('Interaction strength, <a>')
 plt.xlabel('Size of species pool, S')
